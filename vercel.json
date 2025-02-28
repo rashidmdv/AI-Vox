@@ -2,11 +2,11 @@
     "version": 2,
     "builds": [
       {
-        "src": "ai-vox/wsgi.py",
+        "src": "voice_chatgpt/wsgi.py",
         "use": "@vercel/python",
         "config": {
           "maxLambdaSize": "15mb",
-          "runtime": "python3.9"
+          "runtime": "python3.10"
         }
       },
       {
@@ -20,7 +20,7 @@
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "ai-vox/wsgi.py"
+        "dest": "voice_chatgpt/wsgi.py"
       }
     ],
     "outputDirectory": "static"
