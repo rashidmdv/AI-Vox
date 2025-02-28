@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+{% block style %}
+    .back-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        font-size: 24px;
+        transition: background 0.3s;
+    }
+
+    .back-button:hover {
+        background: #45a049;
+    }
+{% endblock %}
+
+{% block body %}
+
+    <a href='/user_home'>
+      <button class="back-button">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+    </a>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header text-center">
+                        <h4>Edit Profile</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="/update_profile" method="POST" enctype="multipart/form-data">
+                           <div class="mb-3 text-center">
+                                <label class="form-label d-block">Profile Image</label>
+
+                                {% if user.image %}
+                                    <!-- Show user profile image if available -->
+                                    <img src="{{ user.image.url }}"
+                                         alt="Profile Image"
+                                         id="previewImage"
+                                         class="rounded-circle mb-3"
+                                         style="width: 100px; height: 100px; object-fit: cover;">
+                                    <!-- Hidden field to store previous image filename -->
+                                    <input type="hidden" name="previous_image" value="{{ user.image.url }}">
+                                {% else %}
+                                    <!-- Show an icon if no profile image -->
+
+                                        <div>
+                                            <i class="pe-7s-users fs-3"></i>
+                                            No image
+                                        </div>
+
+                                {% endif %}
+
+                                <label for="changeImage" class="form-label d-block" style="text-align: left;">Change Image</label>
+                                <input type="file" class="form-control" id="changeImage" name="profile_image" accept="image/*" onchange="previewImage(event)" required>
+                            </div>
+
+
+                            <div class="mb-3">
+                                <label for="fullName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="fullName" name="full_name" placeholder="Enter your full name" value={{user.name}} required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phoneNumber" name="phone" placeholder="Enter your phone number" value={{user.phone}} pattern="[6789][0-9]{9}" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                const output = document.getElementById('previewImage');
+                const placeholder = document.getElementById('imagePlaceholder');
+
+                if (placeholder) placeholder.style.display = "none"; // Hide Placeholder
+                output.src = reader.result;
+                output.style.display = "block"; // Show Image
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+    </script>
+
+{% endblock %}

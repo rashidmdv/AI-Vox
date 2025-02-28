@@ -1,0 +1,133 @@
+{% extends 'layout.html' %}
+{% block style %}
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 80%;
+      margin: 20px auto;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .complaint {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .complaint p {
+      margin: 5px 0;
+    }
+    .reply {
+      margin-left: 20px;
+      background: #f1f1f1;
+      padding: 10px;
+      border-left: 4px solid var(--primary-color);
+    }
+    .reply strong {
+      margin: 0;
+      color: var(--primary-color);
+    }
+    .reply p {
+      margin: 5px 0;
+    }
+
+    .complaint-form {
+      display: none;
+      margin-top: 30px;
+    }
+    .complaint-form textarea,
+    .complaint-form button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .add-complaint {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: var(--primary-color);
+        color: white;
+        font-size: 24px;
+        border: none;
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background 0.3s;
+    }
+
+    .add-complaint:hover {
+        background: #45a049;
+    }
+
+    .back-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        font-size: 24px;
+        transition: background 0.3s;
+    }
+
+    .back-button:hover {
+        background: #45a049;
+    }
+{% endblock %}
+
+{% block body %}
+    <!-- Back Button -->
+    <a href='/user_home'>
+      <button class="back-button">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+    </a>
+
+    <div class="container my-5">
+        <h1>{{ complaints|length }} Complaints and Replies</h1>
+
+        <!-- List of Complaints -->
+        <div class="complaints">
+          {% for complaint in complaints %}
+          <div class="complaint">
+            <h4 style="color: #333 ; font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+              {{ complaint.USER.name }}
+              <span style="color:#555; font-size: 14px; font-weight: normal;">{{ complaint.date }}</span>
+            </h4>
+            <p>{{ complaint.complaint }}</p>
+            <div class="reply">
+              <p><strong>Reply:</strong></p>
+              <p>{{ complaint.reply }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Add Complaint Button -->
+        <button class="add-complaint" onclick="window.location.href='/send_complaint'">+</button>
+    </div>
+{% endblock %}

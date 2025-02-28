@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+{% block style %}
+ .btn-box .btn1 {
+  background-color: var(--primary-color) !important;
+  color: #ffffff;
+  transition: all .3s;
+  border: 1px solid var(--primary-color) !important;
+}
+ .btn-box .btn1:hover {
+  background-color: transparent !important;
+  color: var(--primary-color) !important;
+}
+{% endblock %}
+{% block body %}
+
+  <div class="hero_area">
+    <div class="hero_bg_box">
+      <img src="/static/images/voice.jpg" alt="">
+    </div>
+
+      {% include 'User/navbar.html' %}
+
+    <!-- slider section -->
+    <section class="slider_section">
+            <div class="container">
+              <div class="row">
+                <div class="col-lg-10 col-md-11 mx-auto">
+                  <div class="detail-box">
+                    <h1 style="line-height: 1.5em; font-size:3em; color: #fff;">
+                      Use <span style="color: var(--primary-color);">AI Vox</span> <br>
+                      To <span style="color: var(--primary-color);">Simplify </span> Your Life
+                    </h1>
+                    <p>
+                      Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio omnis fugit, sed tempora praesentium commodi error, hic recusandae repudiandae neque ad molestias, atque veritatis labore quae eveniet autem in
+                    </p>
+                    <div class="btn-box">
+                      <a href="/chat" class="btn1">
+                        Try Chat
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+    </section>
+    <!-- end slider section -->
+  </div>
+
+
+
+
+
+{% endblock %}

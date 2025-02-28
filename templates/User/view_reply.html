@@ -1,0 +1,115 @@
+{% extends 'layout.html' %}
+{% block style %}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin:100px 0px;
+        }
+
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .complaint-box, .reply-box {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .complaint-box {
+            background-color: #f9f9f9;
+            border-left: 5px solid #007BFF;
+        }
+
+        .reply-box {
+            background-color: #e9f7e9;
+            border-left: 5px solid #28a745;
+        }
+
+        .complaint-box h3, .reply-box h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .complaint-box p, .reply-box p {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .complaint-box .date, .reply-box .date {
+            font-size: 12px;
+            color: #777;
+            margin-top: 10px;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 24px;
+            transition: background 0.3s;
+        }
+
+        .back-button:hover {
+            background: #45a049;
+        }
+{% endblock %}
+
+{% block body %}
+     <!-- Back Button -->
+     <a href='/user_home'>
+        <button class="back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+      </a>
+    <div class="container">
+        {% for i in complaint reversed %}
+        <h1>Your Complaint and Admin's Reply</h1>
+        <!-- Complaint Box -->
+        <div class="complaint-box">
+            <h3>Your Complaint:</h3>
+<!--            <p><strong>Complaint Title:</strong> Product Defect</p>-->
+            <p><strong>Description:</strong> {{i.complaint}} </p>
+            <p class="date">Submitted on: {{i.date}} </p>
+        </div>
+
+        <!-- Admin Reply Box -->
+        <div class="reply-box">
+            <h3>Admin's Reply:</h3>
+            <p><strong>Reply:</strong> {{i.reply}} </p>
+        </div>
+
+        {% endfor %}
+    </div>
+
+{% endblock %}

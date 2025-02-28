@@ -1,0 +1,102 @@
+{% extends 'layout.html' %}
+{% block style %}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input, textarea {
+            font-size: 16px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            background: #ffffff;
+            color: #333;
+        }
+
+        textarea {
+            resize: none;
+            height: 300px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 5px rgba(50, 150, 250, 0.4);
+        }
+
+        button {
+            font-size: 16px;
+            padding: 12px;
+            background: var(--primary-color, #007bff);
+            border: none;
+            border-radius: 20px;
+            margin: 10px 0;
+            color: #ffffff;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid var(--primary-color, #007bff);
+            transition: all 0.4s;
+        }
+
+        button:hover {
+            background: transparent;
+            color: var(--primary-color, #007bff);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--primary-color, #007bff);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Send a Complaint</h1>
+        <form action="/send_complaint_post" method="post">
+            {% csrf_token %}
+            <textarea name="complaint" placeholder="Write your complaint here" required></textarea>
+            <button type="submit">Send Complaint</button>
+        </form>
+        <a href="/all_complaints" class="back-link">Go Back</a>
+    </div>
+{% endblock %}

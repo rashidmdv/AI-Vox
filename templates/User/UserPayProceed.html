@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>pay</title>
+</head>
+<style>
+
+	* {
+		box-sizing: border-box;
+		padding: 0px;
+		margin: 0px;
+		font-family: Copperplate;
+	}
+	html,
+	body {
+		height: 100%;
+	}
+	body {
+		background-color: #f1f5f8;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.card {
+		background-color: white;
+		padding: 25px;
+		border: 1px solid #bbbbbb;
+		border-radius: 5px;
+		box-shadow: 1px 1px 10px 0px rgb(0 0 0 / 25%);
+	}
+	.title {
+		text-align: center;
+		letter-spacing: 1px;
+	}
+	.muted {
+		color: #8e7f7f;
+		display: block;
+		margin-bottom: 10px;
+		text-align: center;
+	}
+	.btn_container {
+		padding: 20px;
+		text-align: center;
+	}
+	.btn {
+		border-radius: 4px;
+		cursor: pointer;
+		padding: 4px 8px;
+		background-color: #ff0000;
+		color: white;
+		font-size: 1.2em;
+		font-weight: 600;
+		letter-spacing: 1px;
+	}
+	#rzp-button1{
+	border:0;
+	}
+	#rzp-button1:hover{
+	background-color:green;
+	border:0;
+	}
+	</style>
+
+
+<body>
+
+
+
+<form action="http://127.0.0.1:8000/on_payment_success?lid={{ lid }}&id={{ id }}" method="post">
+    <!--<script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_test_edrzdb8Gbx5U5M"-->
+        <!--data-amount="{{p.amount}}-->
+        <!--data-currency="{{p.currency}}"-->
+        <!--data-order_id="{{p.order_id}}"-->
+        <!--data-buttontext="Pay with razorpayy"-->
+        <!--data-name="KMCT BUS FEE"-->
+        <!--data-description="Test transaction"-->
+        <!--data-theme.color="#3399cc"  ></script>-->
+<!--<input type="hidden" custom="Hidden element" name="hidden">-->
+
+    <div class="card">
+	<h1 class="title">Proceed for Payment </h1>
+	<small class="muted">Proceed to payment by clicking the pay button</small>
+	<div class="btn_container">
+		<!-- Payment Button -->
+		<button class="btn" id="rzp-button1">Pay</button>
+	</div>
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+var options = {
+    "key": "rzp_test_edrzdb8Gbx5U5M", // Enter the Key ID generated from the Dashboard
+    "amount": "{{p.amount}}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+    "currency": "INR",
+    "name": "Tution",
+    "description": "Test Transaction",
+    "order_id": "{{p.order_id}}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+    "callback_url": "http://127.0.0.1:8000/on_payment_success?lid={{ lid }}&id={{ id }}",
+    "prefill": {
+        "name": "rashid",
+        "email": "rashid859041@gmail.com",
+        "contact": "8590410337"
+    },
+    "notes": {
+        "address": "Razorpay Corporate Office"
+    },
+    "theme": {
+
+        "color": "#3399cc"
+    }
+};
+var rzp1 = new Razorpay(options);
+document.getElementById('rzp-button1').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+}
+</script>
+</form>
+</body>
+</html>
+
+

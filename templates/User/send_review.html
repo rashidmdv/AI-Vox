@@ -1,0 +1,134 @@
+{% extends 'layout.html' %}
+{% block style %}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .review-container {
+            width: 100%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .rating {
+            display: flex;
+            justify-content: flex-start; /* Keeps the stars aligned from left to right */
+            flex-direction: row-reverse; /* Makes the rating go from right to left */
+            width: 200px;
+            margin-bottom: 10px;
+        }
+
+        .rating input {
+            display: none;
+        }
+
+        .rating label {
+            font-size: 24px;
+            color: #ccc;
+            cursor: pointer;
+            margin-left: 8px; /* Adds gap between stars */
+        }
+
+        .rating input:checked ~ label {
+            color: #ffc107;
+        }
+
+        .rating input:hover ~ label {
+            color: #ffdd55;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: vertical;
+            height: 100px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border:1px solid var(--primary-color);
+            transition: all 0.4s;
+        }
+
+        button:hover {
+            background-color:transparent;
+            color: black;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+{% endblock %}
+{% block body %}
+    <div class="review-container">
+        <h1>Send Rating and Review</h1>
+        <form id="review-form" action="/send_review_post" method="post">{% csrf_token %}
+            <div class="form-group">
+                <label for="rating">Rating:</label>
+                <div class="rating">
+                    <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
+                    <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+                    <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+                    <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+                    <input type="radio" id="star1" name="rating" value="1" required><label for="star1">★</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="review">Your Review:</label>
+                <textarea id="review" name="review" placeholder="Write your review here..." required></textarea>
+            </div>
+
+            <button type="submit">Submit Review</button>
+            <a href="/user_home" class="back-link">Go Back</a>
+        </form>
+    </div>
+
+{% endblock %}

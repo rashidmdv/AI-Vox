@@ -1,0 +1,92 @@
+{% extends 'admin/layout.html' %}
+{% block style %}
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, textarea, button {
+            font-size: 16px;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            height: 150px;
+        }
+
+        button {
+            background-color: var(--primary-color) ;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2b7873;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <h1>Send Reply</h1>
+        <form action="" method="POST">{% csrf_token %}
+            <label>Complaint</label>
+            <p id="complaint" name="complaint">{{complaint.complaint}}</p>
+
+            <label for="reply-message">Reply Message</label>
+            <textarea id="reply-message" name="reply_message" placeholder="Write your reply here" required></textarea>
+            <input type="hidden" name="id" value="{{ complaint.id }}">
+
+            <button type="submit" name="submit">Send Reply</button>
+        </form>
+        <a href="/view_complaint" class="back-link">Back to Complaints</a>
+    </div>
+
+{% endblock %}

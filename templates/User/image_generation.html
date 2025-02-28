@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background: #f4f4f4;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #212121;
+            color: white;
+            position: fixed;
+            height: 100%;
+            left: 0;
+            top: 0;
+            transition: transform 0.3s ease-in-out;
+            padding-top: 80px;
+            z-index: 1000;
+        }
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+        .menu-toggle {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            {% comment %} background: #00c292; {% endcomment %}
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar ul li {
+            padding: 15px;
+            border-bottom: 1px solid #444;
+            text-align: center;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        .sidebar ul li:hover {
+            background: #555;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            width: 100%;
+            transition: margin-left 0.3s ease-in-out;
+            text-align: center;
+        }
+        .main-content.full-width {
+            margin-left: 0;
+        }
+
+        /* Navbar */
+        .navbar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+             background: #212121;
+            color: white;
+            padding: 10px 15px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .navbar img {
+            height: 40px;
+
+        }
+        .profile-icon {
+            border-radius: 50%;
+            margin-right: 80px;
+        }
+
+        /* Chat UI */
+        .chat-container {
+            width: 80%;
+            margin: 130px auto;
+            border: 1px solid #ccc;
+            padding: 30px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .chat-container h1 {
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            padding: 10px 20px;
+            background: linear-gradient(90deg,rgb(39, 72, 64), #00c292);
+            border-radius: 10px;
+            box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2);
+            display: inline-block;
+            margin: 10px 0px 30px;
+        }
+        .chat-box {
+            height: 60vh;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        .chat-box .user-message,.bot-message {
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            word-wrap: break-word;
+            font-size: 17px;
+            line-height: 27px;
+            z-index:100;
+        }
+        .user-message {
+            background: #1d1e6d;
+            color: white;
+            align-self: flex-end;
+            text-align: right;
+        }
+        .bot-message {
+            background: white;
+            color: black;
+            align-self: flex-start;
+            text-align: left;
+        }
+        .input-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            margin-left: 10px;
+            padding: 10px;
+            border: none;
+            background: #212121;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #171717;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            /* Chat UI */
+            .chat-container {
+                width: 90%;
+                margin: 100px auto;
+                padding: 15px;
+            }
+            .profile-icon {
+                margin-right: 20px;
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar mt-4" id="sidebar">
+        <style>
+            .sidebar ul li a{
+                text-align: left;
+                margin-left: 30px;
+            }
+        </style>
+        <ul>
+            <li><a href="/user_home"><i class="fa-solid fa-house me-3"></i> Home</a></li>
+            <li><a href="/image_generation"><i class="fa-solid fa-plus me-3"></i> New Chat</a></li>
+            <li><a href="/chat"><i class="fa-brands fa-rocketchat me-3"></i> Chatbot</a></li>
+            <li><a href="/image_generation"><i class="fa-regular fa-image me-3"></i> Image</a></li>
+            <li><a href="/user_pay_proceed"><i class="fa-solid fa-money-bill-wave me-3"></i> Upgrade to Pro </a></li>
+            <li><a href="/"><i class="fa-solid fa-right-from-bracket me-3"></i>Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <div class="navbar">
+            <button class="menu-toggle" id="toggle-sidebar">☰</button>
+<!--            <img src="/static/images/admin.jpg" alt="Logo" style="margin-left: 80px;">-->
+              <h5 class="text-center mt-3" style="margin-left:80px;">
+                <a href="/user_home" style="color: #000000; text-decoration: none; font-size: 25px;font-weight: bold;color:white;">AI Vox</a>
+              </h5>
+            <div class="profile-icon">
+
+                <div class="dropdown ms-auto">
+                  <img
+                    src="/static/images/admin.jpg"
+                    alt="Profile"
+                    class="profile-img dropdown-toggle rounded-circle"
+                    style="width: 40px; height: 40px; object-fit: cover;"
+                    id="profileDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                  <ul class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="profileDropdown">
+                    <li><a class="dropdown-item" href="/profile/">Profile</a></li>
+                    <li><a class="dropdown-item" href="/send_review">Review</a></li>
+                    <li><a class="dropdown-item" href="/send_complaint">Complaint</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                  </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <h1>Image with AI</h1>
+            <div class="chat-box" id="chat-box">
+                <div class="bot-message"><strong>AI Vox </strong>
+                    <p class="mb-0 mt-1">Hello! How can I assist you today?</p>
+                </div>
+            </div>
+            <style>
+                #chat-box {
+                    background-image: url("/static/images/bg-shade2.jpg");
+                    background-size: cover; /* Ensures the image covers the entire div */
+                    background-position: center;
+                    background-repeat: no-repeat; /* Prevents repeating */
+                }
+            </style>
+            <div class="input-container">
+                <input type="text" id="user-message" placeholder="Type a message...">
+                <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                <button id="voice-button"><i class="fa-solid fa-microphone"></i></button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="/static/js/bootstrap.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script>
+        // Sidebar Toggle
+        $("#toggle-sidebar").click(function () {
+            $("#sidebar").toggleClass("open");
+        });
+
+        function sendMessage() {
+            let userMessage = $("#user-message").val().trim();
+            if (userMessage === "") return;
+
+            $("#chat-box").append(`<div class="user-message">
+                                        <strong>You</strong>
+                                        <p class="mb-0 mt-1">${userMessage}</p>
+                                   </div>`);
+            $("#user-message").val("");
+            scrollChatToBottom();
+
+            // Show "typing..." indicator
+            $("#chat-box").append('<p class="bot-message">image generating...</p>');
+            scrollChatToBottom();
+
+            $.ajax({
+                type: "POST",
+                url: "/image_generation_post",
+                contentType: "application/json",
+                data: JSON.stringify({ message: userMessage }),
+                success: function (response) {
+                    $(".bot-message").last().remove(); // Remove "typing..." message
+                    let imageUrl = `/media/${response.response}`;
+
+                    $("#chat-box").append(`
+                        <div class="bot-message image-container" style="text-align: left;">
+                            <p><strong>AI Vox:</strong></p>
+                            <img src="${imageUrl}" class="generated-image" height="400px" width="400px">
+                            <a href="${imageUrl}" download class="download-icon">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+                    `);
+
+                    $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+                }
+            });
+        }
+
+        function scrollChatToBottom() {
+            $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+        }
+
+        // Enable enter key to send message
+        $("#user-message").keypress(function (e) {
+            if (e.which === 13) sendMessage();
+        });
+
+        // Voice Input
+        const voiceButton = document.getElementById("voice-button");
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+
+        voiceButton.addEventListener("click", () => {
+            //alert("Voice recognition started...");
+            // Show "typing..." indicator
+            $("#chat-box").append('<p class="user-message">Recording in progress... Speak clearly for the best results...</p>');
+            scrollChatToBottom();
+
+            recognition.start();
+
+
+        });
+
+        recognition.onresult = function (event) {
+            const voiceText = event.results[0][0].transcript;
+            $(".user-message").last().remove(); // Remove "typing..." message
+            $("#user-message").val(voiceText);
+            sendMessage();
+        };
+    </script>
+</body>
+</html>

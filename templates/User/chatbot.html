@@ -1,0 +1,422 @@
+{% extends 'layout.html' %}
+  {% block style %}
+
+  <style>
+    body {
+      height: 100vh;
+      overflow: hidden;
+      background: #f1f2f7;
+    }
+    .sidebar {
+      background-color: #222222;
+      color: white;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: -250px;
+      width: 250px;
+      transition: all 0.3s;
+      z-index: 1040;
+      overflow-y: auto;
+    }
+    .sidebar.show {
+      left: 0;
+    }
+    .sidebar .items a {
+      color: #000000;
+      text-decoration: none;
+      font-size: 14px;
+      margin: 0.5rem 0;
+      display: block;
+      padding: 10px 25px;
+      border: 1px solid var(--primary-color);
+      background-color: var(--primary-color);
+      color: #000000;
+      margin: 15px 20px;
+      border-radius: 5px;
+      transition: 0.4s all;
+    }
+    .sidebar .items a:hover {
+      background-color: transparent;
+      color: var(--primary-color);
+    }
+    .chat-area {
+      margin-left: 0;
+      transition: margin-left 0.3s;
+    }
+    .chat-area.shifted {
+      margin-left: 250px;
+    }
+    .chat-input {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 16px 50px 16px;
+      background-color: transparent;
+      transition: left 0.3s, width 0.3s;
+    }
+    .chat-input textarea {
+      resize: none; /* Disable resizing */
+      overflow: hidden; /* Prevent scrollbar */
+      border: none;
+    }
+    .chat-input.shifted {
+      left: 250px;
+      right: 0;
+    }
+    .menu-icon {
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .profile-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-left: auto;
+    }
+
+    .input-group {
+      align-items: end; /* Align buttons with text area */
+      border-radius: 15px;
+    }
+    .input-group .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 38px; /* Fixed height for buttons */
+      padding: 8px;
+      border-radius: 0px;
+      background:var(--primary-color);
+    }
+    .input-group .btn.voice-btn {
+      padding: 10px;
+    }
+    #messages {
+      overflow-y: auto;
+      height: calc(100vh - 210px);
+      padding-bottom: 10px;
+
+    }
+    .chat-input textarea:focus {
+      outline: none; /* Remove default outline */
+      box-shadow: none; /* Remove border shadow */
+      border-color: #ddd; /* Optional: Set a subtle border color */
+    }
+    .close-icon {
+      position: absolute;
+      top: 30px;
+      right: 15px;
+      font-size: 1.5rem;
+      color: white !important;
+      cursor: pointer;
+    }
+    .close-icon:hover {
+      color: #ccc;
+    }
+
+    @media (min-width: 768px) {
+      .sidebar {
+        left: 0;
+      }
+      .chat-area {
+        margin-left: 250px;
+      }
+      .chat-input {
+        left: 250px;
+      }
+    }
+  </style>
+
+  {% endblock %}
+{% block body %}
+  <!-- Sidebar -->
+  <div class="sidebar bg-white" id="sidebar">
+    <h5 class="text-center py-3 mt-3">
+      <a href="/user_home" style="color: #000000; text-decoration: none;">Whisper AI</a>
+      <span class="close-icon d-md-none" onclick="toggleSidebar()">✖</span>
+    </h5>
+    <div class="items mt-5">
+      <a href="/chat"><i class="fa-solid fa-plus me-3"></i> New Chat</a>
+      <a href="#"><i class="fa-regular fa-image me-3"></i>Generate Image</a>
+      <a href="#"><i class="fa-solid fa-chalkboard me-3"></i> Learning Mode</a>
+      <a href="#"><i class="fa-solid fa-bell me-3"></i> Task Automation</a>
+      <a href="#"><i class="fa-solid fa-clock-rotate-left me-3"></i> History</a>
+      <a href="/user_pay_proceed"><i class="fa-solid fa-clock-rotate-left me-3"></i> Upgrade to Pro </a>
+<!--      <a href="/"><i class="fa-solid fa-right-from-bracket me-3"></i> Logout</a>-->
+    </div>
+  </div>
+
+  <nav class="navbar navbar-light bg-white d-flex align-items-center px-5 py-3">
+    <span class="menu-icon d-md-none" id="menuIcon" onclick="toggleSidebar()">☰</span>
+
+    <!-- Profile Dropdown -->
+    <div class="dropdown ms-auto">
+      <img
+        src="/static/images/admin.jpg"
+        alt="Profile"
+        class="profile-img dropdown-toggle rounded-circle"
+        style="width: 50px; height: 50px; object-fit: cover;"
+        id="profileDropdown"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+      <ul class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="profileDropdown">
+        <li><a class="dropdown-item" href="/profile/">Profile</a></li>
+        <li><a class="dropdown-item" href="/send_review">Review</a></li>
+        <li><a class="dropdown-item" href="/send_complaint">Complaint</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="/logout">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+
+  <!-- Chat Area -->
+  <div class="chat-area" id="chatArea">
+  <div class="container-fluid py-3" id="messages" style="max-width: 900px;">
+    <div class="text-start mb-3">
+      <div class="p-3 bg-white rounded shadow-sm mt-4">
+        <h4 style="font-size:16px; font-weight:bold;">Whisper AI</h4>
+        Hi! How can I assist you today?
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-input d-flex justify-content-center" id="chatInput">
+    <div class="input-group bg-white p-3" style="max-width: 1000px;">
+      <textarea
+        class="form-control"
+        id="chatBox"
+        placeholder="Type your message here..."
+        rows="1"
+        oninput="adjustTextareaHeight(this)"
+        onkeydown="handleEnterKey(event)"
+      ></textarea>
+      <button class="btn ms-3 me-1" onclick="sendMessage()" title="Send">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+      <button class="btn voice-btn" id="voiceButton" title="Send Voice Message" onclick="toggleVoiceRecording()">
+        <i class="fas fa-microphone"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+  <script>
+  const sidebar = document.getElementById('sidebar');
+  const chatArea = document.getElementById('chatArea');
+  const chatInput = document.getElementById('chatInput');
+  const menuIcon = document.getElementById('menuIcon');
+
+  // Toggle Sidebar
+  function toggleSidebar() {
+    const isSidebarShown = sidebar.classList.toggle('show');
+    chatArea.classList.toggle('shifted', isSidebarShown);
+    chatInput.classList.toggle('shifted', isSidebarShown);
+    menuIcon.textContent = isSidebarShown ? '✖' : '☰';
+  }
+
+  // Adjust Textarea Height
+  function adjustTextareaHeight(textarea) {
+    textarea.style.height = 'auto'; // Reset height to calculate
+    textarea.style.height = `${textarea.scrollHeight}px`; // Set height based on content
+  }
+
+  // Scroll to the latest message
+  function scrollToLatestMessage() {
+    const messages = document.getElementById('messages');
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // Play sound for the response message
+<!--  function playSound(message) {-->
+<!--    const utterance = new SpeechSynthesisUtterance(message);-->
+<!--    speechSynthesis.speak(utterance);-->
+<!--  }-->
+
+  // Copy the response message to clipboard
+  function copyMessage(message) {
+    navigator.clipboard.writeText(message)
+      .then(() => alert('Message copied to clipboard!'))
+      .catch(() => alert('Failed to copy message.'));
+  }
+
+  // Toggle "Like" button state
+  function likeMessage(button) {
+    button.classList.toggle('btn-success');
+    button.classList.contains('btn-success')
+      ? button.setAttribute('title', 'Liked')
+      : button.setAttribute('title', 'Like');
+  }
+
+  // Toggle "Dislike" button state
+  function dislikeMessage(button) {
+    button.classList.toggle('btn-danger');
+    button.classList.contains('btn-danger')
+      ? button.setAttribute('title', 'Disliked')
+      : button.setAttribute('title', 'Dislike');
+  }
+
+   let currentUtterance = null; // Global variable to keep track of the utterance
+
+  // Play sound for the response message
+  function playSound(message) {
+    if (currentUtterance) {
+      // Stop any currently playing utterance
+      speechSynthesis.cancel();
+    }
+    currentUtterance = new SpeechSynthesisUtterance(message);
+    speechSynthesis.speak(currentUtterance);
+  }
+
+  // Stop the sound
+  function stopSound() {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel(); // Stop all current speech
+      currentUtterance = null;  // Reset the current utterance
+    }
+  }
+
+
+ // Add bot response with play and stop buttons
+  function sendMessage() {
+    const messages = document.getElementById('messages');
+    const chatBox = document.getElementById('chatBox');
+    const userMessage = chatBox.value;
+
+    if (userMessage.trim() !== '') {
+      // Add user message
+      const userChat = document.createElement('div');
+      userChat.className = 'text-end mb-3';
+      userChat.innerHTML = `<div class="p-3">
+                              <h4 style="font-size:16px; font-weight:bold;">You</h4>
+                              <p class="text-end">${userMessage}</p>
+                            </div>`;
+      messages.appendChild(userChat);
+
+      // Add bot response
+      const botResponse = document.createElement('div');
+      botResponse.className = 'text-start mb-3';
+      botResponse.innerHTML = `<div class="p-3 bg-white rounded shadow-sm">
+                                  <h4 style="font-size:16px; font-weight:bold;">Whisper AI</h4>
+                                  <p>I'm here to help! You said: "${userMessage}"</p>
+                                  <div class="d-flex mt-2">
+                                    <button class="btn btn-light btn-sm me-2" title="Play Sound" onclick="playSound('${userMessage}')">
+                                      <i class="fas fa-volume-up"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm me-2" title="Stop Sound" onclick="stopSound()">
+                                      <i class="fas fa-stop"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm me-2" title="Copy" onclick="copyMessage('${userMessage}')">
+                                      <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm me-2" title="Like" onclick="likeMessage(this)">
+                                      <i class="fas fa-thumbs-up"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm" title="Dislike" onclick="dislikeMessage(this)">
+                                      <i class="fas fa-thumbs-down"></i>
+                                    </button>
+                                  </div>
+                               </div>`;
+      messages.appendChild(botResponse);
+
+      // Clear input
+      chatBox.value = '';
+      adjustTextareaHeight(chatBox); // Reset height
+
+      // Scroll to the latest message
+      scrollToLatestMessage();
+    }
+  }
+
+  // Handle Enter Key
+  function handleEnterKey(event) {
+    const chatBox = document.getElementById('chatBox');
+
+    if (event.key === 'Enter') {
+      if (event.shiftKey) {
+        // Add a newline
+        event.preventDefault();
+        const cursorPosition = chatBox.selectionStart;
+        const text = chatBox.value;
+        chatBox.value = text.slice(0, cursorPosition) + '\n' + text.slice(cursorPosition);
+        chatBox.selectionStart = chatBox.selectionEnd = cursorPosition + 1;
+        adjustTextareaHeight(chatBox); // Adjust height
+      } else {
+        // Send message on Enter
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+  }
+
+
+  //voice chat
+    let isRecording = false;
+let mediaRecorder;
+let audioChunks = [];
+
+async function toggleVoiceRecording() {
+  const voiceButton = document.getElementById('voiceButton');
+
+  if (!isRecording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        audioChunks = []; // Clear the chunks
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // Process or play the recorded audio
+        console.log('Audio recorded:', audioBlob);
+
+        // You can add the audio URL to your chat interface
+        const messages = document.getElementById('messages');
+        const audioMessage = document.createElement('div');
+        audioMessage.className = 'text-start mb-3';
+        audioMessage.innerHTML = `<div class="p-3" style="display: flex;flex-direction: column;align-items: end;">
+                                    <h4 style="font-size:16px; font-weight:bold;">You</h4>
+                                    <audio controls src="${audioUrl}" class="text-end"></audio>
+                                  </div>`;
+        messages.appendChild(audioMessage);
+        scrollToLatestMessage();
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+      voiceButton.innerHTML = '<i class="fas fa-stop"></i>';
+      console.log('Recording started...');
+    } catch (err) {
+      console.error('Error accessing microphone:', err);
+      alert('Failed to access microphone. Please check permissions.');
+    }
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+    voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+    console.log('Recording stopped.');
+  }
+}
+
+function scrollToLatestMessage() {
+  const messages = document.getElementById('messages');
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function adjustTextareaHeight(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = `${textarea.scrollHeight}px`;
+}
+</script>
+
+  {% endblock %}
+
+

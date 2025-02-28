@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .chat-container {
+            width: 50%;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+        }
+        .input-container {
+            margin-top: 10px;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            background: blue;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: darkblue;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Chat with AI</h1>
+    <div class="chat-container">
+        <div class="chat-box" id="chat-box">
+            <p><strong>Bot:</strong> Hello! How can I assist you today?</p>
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-message" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+            <button id="voice-button">🎤</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            let userMessage = $("#user-message").val().trim();
+            if (userMessage === "") return;
+
+            $("#chat-box").append(`<p><strong>You:</strong> ${userMessage}</p>`);
+            $("#user-message").val("");
+
+            $.ajax({
+                type: "POST",
+                url: "/chatbot-response/",
+                contentType: "application/json",
+                data: JSON.stringify({ message: userMessage }),
+                success: function (response) {
+                    $("#chat-box").append(`<p><strong>Bot:</strong> ${response.response}</p>`);
+                    $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+                }
+            });
+        }
+
+        // Enable enter key to send message
+        $("#user-message").keypress(function (e) {
+            if (e.which === 13) sendMessage();
+        });
+
+        // Voice Input
+        const voiceButton = document.getElementById("voice-button");
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+
+        voiceButton.addEventListener("click", () => {
+            recognition.start();
+        });
+
+        recognition.onresult = function (event) {
+            const voiceText = event.results[0][0].transcript;
+            $("#user-message").val(voiceText);
+            sendMessage();
+        };
+    </script>
+
+</body>
+</html>
