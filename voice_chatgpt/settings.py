@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -100,10 +101,11 @@ WSGI_APPLICATION = 'voice_chatgpt.wsgi.application'
 # DATABASES = {
 #     'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
 # }
-DATABASES = {
-    'default': dj_database_url.config(default=os.getenv("DATABASE_URL"))
-}
+load_dotenv()  # Load environment variables from .env file
 
+DATABASES = {
+    'default': dj_database_url.config(default=os.getenv("DATABASE_URL", "postgres://ai_vox_user:DSSd5i54iqlOGMjfwoE9j4fT3pApN298@dpg-cv16aljqf0us73c4j2ag-a:5432/ai_vox"))
+}
 
 
 # Password validation
