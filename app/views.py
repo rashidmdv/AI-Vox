@@ -44,28 +44,56 @@ def home(request):
 def login(request):
     return render(request,"login.html")
 
+# def login_submit(request):
+#     uname=request.POST['username']
+#     passwd=request.POST['password']
+#     try:
+#         ob=Login.objects.get(username=uname,password=passwd)
+#         request.session['lid']=ob.id
+#         if ob.type=='admin':
+#               ob1 = auth.authenticate(username='admin',password='admin')
+#               if ob1 is not None:
+#                   auth.login(request,ob1)
+#               return  HttpResponse('''<script>window.location='/admin-dashboard'</script>''')
+#         elif ob.type=='user':
+#             ob1 = auth.authenticate(username='admin', password='admin')
+#             if ob1 is not None:
+#                 auth.login(request, ob1)
+#             return HttpResponse('''<script>window.location='/user_home'</script>''')
+#         else:
+#             return HttpResponse('''<script>alert('Invalid');window.location='/'</script>''')
+#     except Login.DoesNotExist:
+#         return render(request, "login.html",{"error": "Invalid username or password..."})
+
+from django.shortcuts import redirect
+
 def login_submit(request):
-    uname=request.POST['username']
-    passwd=request.POST['password']
+    uname = request.POST['username']
+    passwd = request.POST['password']
+    next_url = request.GET.get('next', '/')
+
     try:
-        ob=Login.objects.get(username=uname,password=passwd)
-        request.session['lid']=ob.id
-        if ob.type=='admin':
-              ob1 = auth.authenticate(username='admin',password='admin')
-              if ob1 is not None:
-                  auth.login(request,ob1)
-              return  HttpResponse('''<script>window.location='/admin-dashboard'</script>''')
-        elif ob.type=='user':
+        ob = Login.objects.get(username=uname, password=passwd)
+        request.session['lid'] = ob.id
+
+        if ob.type == 'admin':
             ob1 = auth.authenticate(username='admin', password='admin')
             if ob1 is not None:
                 auth.login(request, ob1)
-            return HttpResponse('''<script>window.location='/user_home'</script>''')
+            return redirect(next_url if next_url != '/' else '/admin-dashboard')
+
+        elif ob.type == 'user':
+            ob1 = auth.authenticate(username='admin', password='admin')
+            if ob1 is not None:
+                auth.login(request, ob1)
+            return redirect(next_url if next_url != '/' else '/user_home')
+
         else:
             return HttpResponse('''<script>alert('Invalid');window.location='/'</script>''')
-    # except:
-    #     return HttpResponse('''<script>alert('Invalid username or password');window.location='/'</script>''')
+
     except Login.DoesNotExist:
-        return render(request, "login.html",{"error": "Invalid username or password..."})
+        return render(request, "login.html", {"error": "Invalid username or password..."})
+
 
 def logout(request):
     auth.logout(request)
