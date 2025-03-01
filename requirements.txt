@@ -3,6 +3,7 @@ asgiref==3.8.1
 cachetools==5.5.1
 certifi==2024.2.2
 charset-normalizer==3.4.1
+dj-database-url==2.3.0
 Django==5.1.5
 google-ai-generativelanguage==0.6.15
 google-api-core==2.24.1
