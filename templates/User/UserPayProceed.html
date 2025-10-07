@@ -67,7 +67,8 @@
 
 
 
-<form action="http://127.0.0.1:8000/on_payment_success?lid={{ lid }}&id={{ id }}" method="post">
+<form action="/on_payment_success?lid={{ lid }}&id={{ id }}" method="post">
+    {% csrf_token %}
     <!--<script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_test_edrzdb8Gbx5U5M"-->
         <!--data-amount="{{p.amount}}-->
         <!--data-currency="{{p.currency}}"-->
@@ -89,13 +90,13 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 var options = {
-    "key": "rzp_test_edrzdb8Gbx5U5M", // Enter the Key ID generated from the Dashboard
+    "key": "{{ RAZORPAY_KEY_ID|default:'' }}", // Provided server-side if needed
     "amount": "{{p.amount}}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
     "currency": "INR",
     "name": "Tution",
     "description": "Test Transaction",
     "order_id": "{{p.order_id}}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-    "callback_url": "http://127.0.0.1:8000/on_payment_success?lid={{ lid }}&id={{ id }}",
+    "callback_url": "/on_payment_success?lid={{ lid }}&id={{ id }}",
     "prefill": {
         "name": "rashid",
         "email": "rashid859041@gmail.com",

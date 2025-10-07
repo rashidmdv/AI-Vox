@@ -41,6 +41,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/update_profile" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
                            <div class="mb-3 text-center">
                                 <label class="form-label d-block">Profile Image</label>
 

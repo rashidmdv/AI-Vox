@@ -357,10 +357,17 @@
             $("#chat-box").append('<p class="bot-message">Bot is typing...</p>');
             scrollChatToBottom();
 
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+
             $.ajax({
                 type: "POST",
                 url: "/chatbot-response/",
                 contentType: "application/json",
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
                 data: JSON.stringify({ message: userMessage }),
                 success: function (response) {
                     $(".bot-message").last().remove(); // Remove "typing..." message

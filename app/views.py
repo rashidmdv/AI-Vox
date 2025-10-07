@@ -1,21 +1,21 @@
 import io
-import smtplib
 from datetime import datetime
-from email.mime.text import MIMEText
 
 # import openai
 import requests
 from PIL import Image
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.files.storage import FileSystemStorage
+from django.core.files.base import ContentFile
 from django.db.models import Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.core.mail import send_mail
+from django.conf import settings
 
 from .models import *
-from voice_chatgpt import settings
 
 @login_required(login_url='/')
 def home(request):
@@ -68,8 +68,8 @@ def login(request):
 from django.shortcuts import redirect
 
 def login_submit(request):
-    uname = request.POST['username']
-    passwd = request.POST['password']
+    uname = request.POST.get('username', '').strip()
+    passwd = request.POST.get('password', '')
     next_url = request.GET.get('next', '/')
 
     try:
@@ -93,6 +93,8 @@ def login_submit(request):
 
     except Login.DoesNotExist:
         return render(request, "login.html", {"error": "Invalid username or password..."})
+    except Exception:
+        return render(request, "login.html", {"error": "Something went wrong. Please try again."})
 
 
 def logout(request):
@@ -117,43 +119,20 @@ def forget_password_post(request):
 
 
     length = 10 # Adjust the password length as needed
-    chars = string.ascii_letters + string.digits + string.punctuation
+    chars = string.ascii_letters + string.digits
     password = ''.join(random.choice(chars) for _ in range(length))
 
     if log:
         logg = log
-        # message = 'temporary Password  is!... ' + str(password)
-        # send_mail(
-        #     'temporary...! Password',
-        #     message,
-        #     settings.EMAIL_HOST_USER,
-        #     [em, ],
-        #     fail_silently=False
-        # )
+        subject = 'Your temporary password'
+        message = f'Your new temporary password is: {password}'
         try:
-            gmail = smtplib.SMTP('smtp.gmail.com', 587)
-            gmail.ehlo()
-            gmail.starttls()
-            gmail.login('hibamuhsinakm8005@gmail.com', 'pkpolwistnzbayfr')
-            print("login=======")
-        except Exception as e:
-            print("Couldn't setup email!!" + str(e))
-
-        msg = MIMEText("Your new password id : " + str(password))
-        print(msg)
-        msg['Subject'] = 'Your new password is'
-        msg['To'] = em
-        msg['From'] = 'hibamuhsinakm8005@gmail.com'
-
-        print("ok====")
-
-        try:
-            gmail.send_message(msg)
-        except Exception as e:
-            return HttpResponse('<script>alert("invalid");window.location="/forget_password"</script>')
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [em], fail_silently=False)
+        except Exception:
+            return HttpResponse('<script>alert("Email send failed. Please try again later.");window.location="/forget_password"</script>')
         logg.password = password
         logg.save()
-        return HttpResponse('<script>alert("Please check Email...");window.location="/"</script>')
+        return HttpResponse('<script>alert("Please check your email for the new password.");window.location="/"</script>')
     else:
         return HttpResponse('<script>alert("invalid");window.location="/forget_password"</script>')
 
@@ -340,21 +319,15 @@ def update_profile(request):
     name = request.POST['full_name']
     # email=request.POST['email']
     phone=request.POST['phone']
-    previous_image = request.POST.get("previous_image")
-    # image=request.FILES['profile_image']
-    # Check if a new image is uploaded
+    ob = User.objects.get(LOGIN_id=request.session['lid'])
+    ob.name = name
+    # ob.email=email
+    ob.phone = phone
     if "profile_image" in request.FILES:
         image = request.FILES["profile_image"]
-    else:
-        image = previous_image  # Keep the old image
-
-    fs=FileSystemStorage()
-    fp=fs.save(image.name,image)
-    ob = User.objects.get(LOGIN_id=request.session['lid'])
-    ob.name=name
-    # ob.email=email
-    ob.phone= phone
-    ob.image=fp
+        fs = FileSystemStorage()
+        fp = fs.save(image.name, image)
+        ob.image = fp
     ob.save()
     return HttpResponse('''<script>alert('Profile updated');window.location='/profile/'</script>''')
 
@@ -408,15 +381,28 @@ import razorpay
 def user_pay_proceed(request):
 
     request.session['pay_amount'] = 100
-    amt=100
-    client = razorpay.Client(auth=("rzp_test_edrzdb8Gbx5U5M", "XgwjnFvJQNG6cS7Q13aHKDJj"))
-    print(client)
-    payment = client.order.create({'amount': str(amt)+"00", 'currency': "INR", 'payment_capture': '1'})
+    amt = 100
+    key_id = settings.RAZORPAY_KEY_ID
+    key_secret = settings.RAZORPAY_KEY_SECRET
+    if not key_id or not key_secret:
+        return HttpResponse('<script>alert("Payment configuration missing. Contact support.");window.location="/user_home"</script>')
+
+    client = razorpay.Client(auth=(key_id, key_secret))
+    payment = client.order.create({'amount': amt * 100, 'currency': "INR", 'payment_capture': '1'})
     res=User.objects.get(LOGIN__id=request.session['lid'])
     # ob=order_table.objects.get(id=request.session['rid'])
     # ob.status='paid'
     # ob.save()
-    return render(request,'user/UserPayProceed.html',{'p':payment,'val':res,"lid":request.session['lid']})
+    return render(
+        request,
+        'user/UserPayProceed.html',
+        {
+            'p': payment,
+            'val': res,
+            'lid': request.session['lid'],
+            'RAZORPAY_KEY_ID': key_id,
+        },
+    )
 
 
 
@@ -431,7 +417,7 @@ def on_payment_success(request):
     ob=Payment()
     ob.USER = User.objects.get(LOGIN_id = request.session['lid'])
     ob.date=datetime.today()
-    ob.time=datetime.now()
+    ob.time=datetime.now().time()
     ob.amount =100
     # ob.ORDER=order_table.objects.get(id=request.session['rid'])
     ob.status='paid'
@@ -445,6 +431,7 @@ def my_chatbot(request):
 
 
 @login_required(login_url='/')
+@ensure_csrf_cookie
 def chatbot(request):
     # user = User.objects.get()
     # return render(request,"User/chatbot.html")
@@ -453,22 +440,17 @@ def chatbot(request):
 
 
 
-# import textwrap
 import google.generativeai as genai
-# from django.http import JsonResponse
 from django.shortcuts import render
 
-# Configure Google Gemini API
-GOOGLE_API_KEY = 'AIzaSyCl3OkF02hWTyZMo82-lXYZMufC6vWapH4'
-genai.configure(api_key=GOOGLE_API_KEY)
-
-# Select a Generative Model
+# Configure Google Gemini API using env-backed settings
 model = None
-for m in genai.list_models():
-    if 'generateContent' in m.supported_generation_methods:
-        print(f"Using model: {m.name}")
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        break
+try:
+    if settings.GOOGLE_API_KEY:
+        genai.configure(api_key=settings.GOOGLE_API_KEY)
+        model = genai.GenerativeModel(getattr(settings, 'GENAI_MODEL_NAME', 'gemini-1.5-flash'))
+except Exception:
+    model = None
 
 
 def generate_gemini_response(prompt):
@@ -477,6 +459,8 @@ def generate_gemini_response(prompt):
     """
     context_prompt = f" {prompt}"
     try:
+        if not model:
+            return "AI is not configured. Please try again later."
         response = model.generate_content(context_prompt)
         return response.text.strip()
     except Exception as e:
@@ -487,6 +471,7 @@ def generate_gemini_response(prompt):
 from django.http import JsonResponse
 import json
 
+@login_required(login_url='/')
 def chatbot_response(request):
     """
     Process user messages and return chatbot responses.
@@ -501,15 +486,15 @@ def chatbot_response(request):
             if not user_message:
                 return JsonResponse({'response': 'Please enter a valid question.'})
 
-            # Generate a response from Gemini (you would need to implement this function)
+            # Generate a response from Gemini
             gemini_response = generate_gemini_response(user_message)
-            user = User.objects.get(LOGIN=request.session['lid'])
+            user = User.objects.get(LOGIN_id=request.session['lid'])
             ob=Chatbot()
             ob.USER = user
             ob.question = user_message
             ob.reply = gemini_response
             ob.date = datetime.now().today().date()
-            ob.typen = 'pending'
+            ob.type = 'pending'
             ob.save()
             return JsonResponse({'response': gemini_response})
 
@@ -521,6 +506,7 @@ def chatbot_response(request):
 
 
 
+@ensure_csrf_cookie
 def image_generation(request):
     return render(request,'User/image_generation.html')
 
@@ -531,12 +517,16 @@ def image_generation_post(request):
 
 
     image_data, image_name = generate_design(user_message)
+    if not image_name:
+        return JsonResponse({'response': 'Image generation is currently unavailable. Please try again later.'}, status=503)
     return JsonResponse({'response': image_name})
 
 
 def generate_design(prompt):
     API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
-    headers = {"Authorization": "Bearer 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"}
+    if not settings.HUGGINGFACE_API_TOKEN:
+        return None, None
+    headers = {"Authorization": f"Bearer {settings.HUGGINGFACE_API_TOKEN}"}
 
     def query(payload):
         try:
@@ -556,16 +546,11 @@ def generate_design(prompt):
 
     def save_image_from_bytes(image_bytes):
         try:
-            # image = Image.open(io.BytesIO(image_bytes))
-            # image_name = f"autoweave {datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-            # image_path = f"media/{image_name}"
-            # image.save(image_path)
-            # return image_path, image_name
-            image = Image.open(io.BytesIO(image_bytes))
+            # Validate it is an image and save raw bytes
+            Image.open(io.BytesIO(image_bytes))
             image_name = f"gpt_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-            fs=FileSystemStorage()
-            image_path = fs.save(image_name, image.fp)
-            # image.save(image_path)
+            fs = FileSystemStorage()
+            image_path = fs.save(image_name, ContentFile(image_bytes))
             return image_path, image_name
 
         except IOError as e:

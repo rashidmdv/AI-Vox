@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -22,12 +23,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vd_%^@&u0(wn2z+so#9^9+*fx(2y7f@%7r%c(6xc_9py22#9^)'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'insecure-dev-key-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-import os
-ALLOWED_HOSTS = ['*']
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+
+# Comma-separated, e.g. "example.com,.example.com,localhost,127.0.0.1"
+ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '*').split(',') if h]
 LOGIN_URL = 'login'
 
 
@@ -48,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -105,8 +107,12 @@ WSGI_APPLICATION = 'voice_chatgpt.wsgi.application'
 # }
 load_dotenv()  # Load environment variables from .env file
 
+# Prefer DATABASE_URL when provided; otherwise default to local sqlite
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv("DATABASE_URL", "postgres://ai_vox_user:DSSd5i54iqlOGMjfwoE9j4fT3pApN298@dpg-cv16aljqf0us73c4j2ag-a:5432/ai_vox"))
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL', f"sqlite:///{(Path(__file__).resolve().parent.parent / 'db.sqlite3')}"),
+        conn_max_age=600,
+    )
 }
 
 
@@ -145,11 +151,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,"static"),]
-STATIC_ROOT=os.path.join(BASE_DIR,'assets')
-STATIC_ROOT=os.path.join(BASE_DIR,'login')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+# Where 'collectstatic' will gather static files for production
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR,"media")
 
 
@@ -159,10 +165,20 @@ MEDIA_ROOT = os.path.join(BASE_DIR,"media")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'voicebasedchatgpt@gmail.com'
-EMAIL_HOST_PASSWORD = 'keko otjl wawd xpby'
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
+
+# CSRF configuration (optional; set via env when deploying)
+CSRF_TRUSTED_ORIGINS = [o for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o]
+
+# Third-party service keys (read from env; avoid hardcoding secrets)
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', '')
+GENAI_MODEL_NAME = os.getenv('GENAI_MODEL_NAME', 'gemini-1.5-flash')
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', '')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', '')
+HUGGINGFACE_API_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', '')
